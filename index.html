@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Adereso · Calculadora de ROI</title>
+<style>
+  :root{
+    --brand:#FFD540; --brand-hover:#FFE37A; --brand-active:#E6C039;
+    --bg1:#0E0F12; --surface:#1B1D22; --elevated:#2E3036;
+    --glass:rgba(255,255,255,0.02);
+    --b-subtle:rgba(255,255,255,0.06); --b-default:rgba(255,255,255,0.10);
+    --success:#52CE5E; --danger:#FF4040; --warning:#F5B942; --info:#186EFA; --wa:#25D366;
+    --white:#FFFFFF; --z300:#d4d4d8; --z400:#a1a1aa; --z500:#71717a; --z600:#52525b;
+    --e1:0 10px 30px rgba(0,0,0,0.35); --e2:0 20px 60px rgba(0,0,0,0.45);
+    --glow:0 0 20px rgba(255,213,64,0.28);
+    --ease:cubic-bezier(0.2,0.8,0.2,1);
+    --r2:10px; --r3:14px; --r4:18px; --r5:24px; --r6:999px;
+    --font-head:"Outfit",-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+    --font-body:"Work Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{
+    font-family:var(--font-body);color:var(--z300);
+    line-height:1.5;font-size:16px;min-height:100vh;
+    background-color:#15171C;
+    background-image:
+      radial-gradient(900px 520px at 12% -8%, rgba(255,213,64,0.10), transparent 62%),
+      radial-gradient(820px 620px at 96% 18%, rgba(24,110,250,0.10), transparent 64%),
+      radial-gradient(1100px 700px at 50% 108%, rgba(37,211,102,0.05), transparent 60%),
+      linear-gradient(180deg,#22252C 0%,#1A1C22 42%,#14161A 100%),
+      radial-gradient(rgba(255,255,255,0.03) 1px,transparent 1px);
+    background-size:auto,auto,auto,auto,22px 22px;
+    background-attachment:fixed,fixed,fixed,fixed,scroll;
+    background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,repeat;
+    padding-bottom:76px;
+  }
+  h1,h2,h3,h4{font-family:var(--font-head);font-weight:500;letter-spacing:-0.01em;color:var(--white);line-height:1.15}
+  ::selection{background:rgba(255,213,64,0.3);color:#fff}
+  .ds-focus:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:none;box-shadow:0 0 0 1px rgba(255,213,64,0.55),0 0 0 5px rgba(255,213,64,0.16)}
+  button{font-family:var(--font-body);cursor:pointer;border:none;background:none;color:inherit}
+  svg{display:block;flex:none}
+  a{color:var(--brand);text-decoration:none}
+
+  /* ---- top bar ---- */
+  .topbar{position:sticky;top:0;z-index:40;background:rgba(28,30,36,0.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--b-subtle)}
+  .topbar-in{max-width:1152px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-head);font-weight:500;color:#fff;font-size:19px;letter-spacing:-0.02em}
+  .logo .dot{width:9px;height:9px;border-radius:999px;background:var(--brand);box-shadow:var(--glow)}
+  .topbar .tag{margin-left:auto;font-size:12px;color:var(--z500);border:1px solid var(--b-default);padding:5px 12px;border-radius:var(--r6)}
+  .btn-reset{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--z400);background:none;border:1px solid var(--b-default);border-radius:var(--r6);padding:5px 12px;cursor:pointer;font-family:inherit;transition:all .18s var(--ease)}
+  .btn-reset:hover{color:var(--danger);border-color:rgba(255,64,64,0.45)}
+
+  /* ---- layout ---- */
+  .wrap{max-width:920px;margin:0 auto;padding:20px 24px 40px}
+  .hero{padding:28px 0 8px}
+  .level-kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);font-weight:500;margin-bottom:10px}
+  .hero h1{font-size:clamp(32px,6vw,56px);line-height:1.06;letter-spacing:-0.02em}
+  .hero .hero-accent{color:var(--brand)}
+  .hero p{color:var(--z400);margin-top:14px;max-width:58ch;font-size:15px}
+
+  /* inversión (manual) */
+  .inv{margin-top:28px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;background:var(--surface);border:1px solid var(--b-default);border-radius:var(--r4);padding:20px 22px;box-shadow:var(--e1)}
+  @media(min-width:720px){.inv{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:center}}
+  .inv-t{display:flex;gap:14px;align-items:flex-start}
+  .inv-ico{width:40px;height:40px;border-radius:var(--r2);display:grid;place-items:center;color:var(--brand);background:rgba(255,213,64,0.08);border:1px solid rgba(255,213,64,0.25);flex:none}
+  .inv-t b{display:block;font-family:var(--font-head);font-size:18px;font-weight:500;color:#fff}
+  .inv-t small{display:block;font-size:13px;color:var(--z500);margin-top:3px}
+  .inv-in{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--b-default);border-radius:var(--r2);padding:4px 14px;transition:border-color .15s var(--ease)}
+  .inv-in:focus-within{border-color:var(--brand);box-shadow:0 0 0 1px rgba(255,213,64,0.55),0 0 0 5px rgba(255,213,64,0.16)}
+  .inv-in span{font-family:var(--font-head);font-size:24px;color:var(--z400)}
+  .inv-in input{flex:1;min-width:0;background:none;border:none;outline:none;color:#fff;font-family:var(--font-head);font-size:28px;font-weight:600;padding:6px 0}
+  .inv-in input:focus-visible{box-shadow:none}
+  .inv-in em{font-style:normal;font-size:13px;color:var(--z500);white-space:nowrap}
+
+  /* ROI */
+  .roi-macro{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);font-weight:600;margin:28px 0 12px}
+  .roi-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-bottom:6px}
+  @media(min-width:720px){.roi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .roi-card{background:rgba(255,255,255,0.02);border:1px solid var(--b-default);border-radius:var(--r3);overflow:hidden;transition:border-color .2s var(--ease);min-width:0}
+  .roi-card.on{border-color:var(--brand);background:linear-gradient(0deg,rgba(255,213,64,0.04),rgba(255,213,64,0.04)),var(--surface)}
+  .roi-head{display:flex;align-items:center;gap:12px;width:100%;padding:14px 15px;text-align:left;background:none;cursor:pointer;min-height:44px}
+  .roi-check{flex:none;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--b-default);display:grid;place-items:center;font-size:13px;color:#000;transition:all .2s var(--ease)}
+  .roi-card.on .roi-check{background:var(--brand);border-color:var(--brand)}
+  .roi-hmeta{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+  .roi-name{font-size:14.5px;color:#fff;font-weight:500}
+  .roi-tag{font-size:11.5px;color:var(--z500)}
+  .roi-badge{flex:none;font-size:13px;font-weight:600;color:var(--success);font-family:var(--font-head)}
+  .roi-body{padding:0 15px 15px;border-top:1px solid var(--b-subtle)}
+  .roi-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
+  .roi-f label{display:block;font-size:11.5px;color:var(--z500);margin-bottom:5px}
+  .roi-f input,.roi-f select{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--b-default);border-radius:var(--r2);padding:9px 11px;color:#fff;font-family:var(--font-body);font-size:14px;min-height:40px}
+  .roi-f select{appearance:none;cursor:pointer}
+  .roi-f select option{background:#1B1D22}
+  .roi-pills{display:flex;gap:6px;flex-wrap:wrap}
+  .roi-pill{font-size:12.5px;color:var(--z400);border:1px solid var(--b-default);border-radius:var(--r6);padding:7px 12px;transition:all .15s var(--ease);min-height:36px}
+  .roi-pill:hover{color:#fff;border-color:rgba(255,255,255,0.22)}
+  .roi-pill.on{color:var(--brand);border-color:var(--brand);background:rgba(255,213,64,0.08)}
+  .roi-f.full{grid-column:1/-1}
+  .roi-extra{font-size:12px;color:var(--brand);margin-top:11px}
+  .roi-cnote{font-size:11.5px;color:var(--z600);margin-top:9px;line-height:1.45}
+  .roi-panel{margin-top:26px;background:linear-gradient(0deg,rgba(82,206,94,0.05),rgba(82,206,94,0.05)),var(--surface);border:1px solid rgba(82,206,94,0.3);border-radius:var(--r4);padding:22px}
+  .roi-panel-head{display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:18px;color:var(--success);font-weight:500}
+  .roi-panel-sub{font-size:13px;color:var(--z400);margin:6px 0 18px}
+  .roi-empty{font-size:12.5px;color:var(--z500);font-style:italic;margin-top:14px}
+  .roi-cta{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+  /* caso de negocio: pagas vs recibes */
+  .roi-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+  @media(max-width:680px){.roi-cols{grid-template-columns:minmax(0,1fr)}}
+  .roi-col{background:rgba(0,0,0,0.22);border:1px solid var(--b-subtle);border-radius:var(--r3);padding:16px 18px;display:flex;flex-direction:column}
+  .rc-h{display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--z400);margin-bottom:10px}
+  .rc-dot{width:8px;height:8px;border-radius:999px;background:var(--z500)}
+  .roi-col.pay .rc-dot{background:var(--warning)}
+  .roi-col.get .rc-dot{background:var(--success)}
+  .rc-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--b-subtle);font-size:14px;color:var(--z300)}
+  .rc-row small{display:block;font-size:11.5px;color:var(--z500);margin-top:1px}
+  .rc-row b{font-family:var(--font-head);font-size:17px;color:#fff;font-weight:500;white-space:nowrap}
+  .rc-row.muted b{color:var(--z400)}
+  .rc-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:auto}
+  .rc-total span{font-size:14px;color:#fff;font-weight:500}
+  .rc-total b{font-family:var(--font-head);font-size:24px;font-weight:600;color:#fff}
+  .roi-col.pay .rc-total b{color:var(--warning)}
+  .roi-col.get .rc-total b{color:var(--success)}
+  .rc-total b.neg{color:var(--danger)}
+  .roi-verdict{margin-top:14px;display:flex;align-items:center;gap:18px;background:rgba(82,206,94,0.08);border:1px solid rgba(82,206,94,0.35);border-radius:var(--r3);padding:16px 20px}
+  .rv-big{font-family:var(--font-head);font-size:52px;letter-spacing:-0.02em;font-weight:600;color:var(--success);line-height:1}
+  .rv-big.neg{color:var(--danger)}
+  .rv-txt{display:flex;flex-direction:column;gap:3px}
+  .rv-txt b{font-size:13px;color:#fff;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+  .rv-pct{font-style:normal;text-transform:none;letter-spacing:0;font-weight:400;color:var(--success);margin-left:6px;white-space:nowrap}
+  .rv-txt span{font-size:14.5px;color:var(--z300)}
+  @media(max-width:520px){.roi-verdict{flex-direction:column;align-items:flex-start;gap:10px}.rv-big{font-size:44px}}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:var(--r6);font-size:14px;font-weight:500;transition:all .15s var(--ease);min-height:44px}
+  .btn-primary{background:var(--brand);color:#000;box-shadow:var(--glow)}
+  .btn-primary:hover{background:var(--brand-hover)}
+  .btn-primary:active{background:var(--brand-active)}
+  .btn-ghost{border:1px solid var(--b-default);color:#fff}
+  .btn-ghost:hover{background:rgba(255,255,255,0.05)}
+
+  .foot{margin-top:28px;font-size:12px;color:var(--z600);line-height:1.5;max-width:70ch}
+
+  /* scroll reveal */
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .55s var(--ease),transform .55s var(--ease);will-change:opacity,transform}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+
+  @media print{
+    .topbar,.roi-cta,.btn-reset{display:none!important}
+    .reveal{opacity:1!important;transform:none!important}
+    body{padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .wrap{padding:18px}
+    .roi-card:not(.on){display:none}
+    .roi-panel,.roi-card{break-inside:avoid}
+    @page{size:A4 portrait;margin:12mm}
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="logo"><span class="dot"></span>Adereso</div>
+      <div class="tag">Valores en USD · por mes</div>
+      <button class="btn-reset" id="resetBtn" title="Reiniciar valores"><span data-i="reset" data-sz="14"></span>Reset</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <main>
+      <div class="hero reveal">
+        <div class="level-kicker">ROI · Caso de negocio</div>
+        <h1>Mídelo por lo que retorna.<br><span class="hero-accent">No por lo que cuesta.</span></h1>
+        <p>Arma el caso de negocio: activa los casos de uso y compara la ganancia mensual contra la inversión en Adereso.</p>
+      </div>
+
+      <div class="inv reveal">
+        <div class="inv-t"><span class="inv-ico" data-i="coin"></span><div><b>Inversión mensual en Adereso</b><small>Ingresa la mensualidad de tu propuesta. Es la base contra la que se mide el retorno.</small></div></div>
+        <label class="inv-in" for="roiCost"><span>$</span><input type="number" id="roiCost" min="0" step="any" inputmode="decimal" placeholder="Ej: 558" aria-label="Inversión mensual en Adereso (USD)"><em>USD/mes</em></label>
+      </div>
+
+      <div id="roiArea"></div>
+
+      <p class="foot reveal">Simulación referencial. Los resultados dependen de los supuestos que ingreses en cada caso de uso; no constituyen una garantía de retorno. El costo de plantillas de WhatsApp usa la tarifa de Meta del país más el fee de la billetera Adereso–Meta.</p>
+    </main>
+  </div>
+
+<script>
+const ICONS={
+  check:'<path d="M5 12l5 5L20 7"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  print:'<path d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9V3H7v6M7 13h10v8H7z"/>',
+  coin:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 10a2.5 1.8 0 0 1 5 0M14.5 14a2.5 1.8 0 0 1-5 0"/>',
+  reset:'<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/>',
+  link:'<path d="M9 15l6-6"/><path d="M11 6l.46-.54a5 5 0 0 1 7.07 7.07L18 13"/><path d="M13 18l-.4.53a5 5 0 0 1-7.07-7.07L6 11"/>'
+};
+function paintIcons(root=document){
+  root.querySelectorAll('[data-i]').forEach(el=>{
+    const k=el.getAttribute('data-i');if(!ICONS[k]||el.dataset.painted)return;
+    const sz=el.getAttribute('data-sz')||20;
+    el.innerHTML='<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+ICONS[k]+'</svg>';
+    el.dataset.painted='1';
+  });
+}
+const usd=n=>(n<0?'−$':'$')+Math.round(Math.abs(n)).toLocaleString('en-US');
+const usd3=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:4,maximumFractionDigits:4});
+
+/* Tarifas de Meta por país, plantillas de marketing (USD por mensaje). */
+const WA_PRICES={
+ CL:{name:'Chile',flag:'🇨🇱',marketing:0.0889},
+ PE:{name:'Perú',flag:'🇵🇪',marketing:0.0703},
+ CO:{name:'Colombia',flag:'🇨🇴',marketing:0.0125},
+ AR:{name:'Argentina',flag:'🇦🇷',marketing:0.0618},
+ BR:{name:'Brasil',flag:'🇧🇷',marketing:0.0625},
+ MX:{name:'México',flag:'🇲🇽',marketing:0.0305},
+ ES:{name:'España',flag:'🇪🇸',marketing:0.0615},
+ XL:{name:'Resto de LatAm',flag:'🌎',marketing:0.0740}
+};
+const WA_COUNTRIES=['CL','PE','CO','AR','BR','MX','ES','XL'];
+
+const INITIAL={cost:null,country:'CL',wallet:'no_recurrente',outWa:true,roiActive:{},roiVals:{}};
+let state=JSON.parse(JSON.stringify(INITIAL));
+
+/* reveal on scroll */
+const prefersReduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const revealIO=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');revealIO.unobserve(en.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:0.08});
+function observeReveals(root=document){if(prefersReduced){root.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));return;}root.querySelectorAll('.reveal:not(.in)').forEach(el=>revealIO.observe(el));}
+function applyReveal(area,sel){const first=!area.dataset.revealed;area.querySelectorAll(sel).forEach((el,i)=>{el.classList.add('reveal');if(first&&!prefersReduced){el.style.transitionDelay=(i*55)+'ms';}else{el.classList.add('in');}});area.dataset.revealed='1';observeReveals(area);}
+
+/* ===== ROI · caso de negocio ===== */
+const ROI_DIAS=22, ROI_HORAS=8, ROI_CASSPER_FEE=5;
+function waP(){return WA_PRICES[state.country]||WA_PRICES.CL;}
+function metaFeeRate(){return state.wallet==='recurrente'?0.10:0.12;}
+/* Plantillas de marketing por WhatsApp: tarifa Meta del país + fee Adereso de la billetera. */
+function roiTplUnit(){const m=waP().marketing;return m==null?null:m*(1+metaFeeRate());}
+function roiTplCost(n){const u=roiTplUnit();return u==null?0:Math.max(0,n||0)*u;}
+function roiTplTxt(n,w){const p=waP(),u=roiTplUnit();if(u==null)return 'Plantillas marketing ('+p.flag+' '+p.name+'): tarifa por confirmar';return 'Plantillas marketing '+p.flag+' '+p.name+': '+Math.round(n).toLocaleString('es-CL')+' × '+usd3(u)+' = '+usd(n*u)+'/mes (Meta + fee)';}
+
+const ROI_CASES={
+ carrito:{macro:'Ventas',name:'Recuperación de carrito',tag:'Engage · WhatsApp saliente',meta:true,note:'Ganancia = carritos abandonados × % recuperación × ticket medio.',
+   fields:[{id:'carritos',label:'Carritos abandonados / mes',value:1000},{id:'recup',label:'% de recuperación esperado',value:10},{id:'ticket',label:'Ticket medio (USD)',value:50}],
+   gain:v=>v.carritos*(v.recup/100)*v.ticket,
+   cost:v=>roiTplCost(v.carritos),
+   extra:v=>roiTplTxt(v.carritos,'recordatorio')},
+ cassper:{macro:'Ventas',name:'Recuperación de venta perdida',tag:'Cassper',note:'Venta perdida recuperada de forma conversacional = ventas caídas × % recuperación × ticket medio. El success fee de Cassper (sobre lo recuperado) se descuenta como costo.',
+   fields:[{id:'perdidas',label:'Ventas perdidas / caídas / mes',value:800},{id:'recup',label:'% de recuperación conversacional',value:12},{id:'ticket',label:'Ticket medio (USD)',value:55}],
+   gain:v=>v.perdidas*(v.recup/100)*v.ticket,
+   cost:v=>v.perdidas*(v.recup/100)*v.ticket*(ROI_CASSPER_FEE/100),
+   extra:v=>{const rec=v.perdidas*(v.recup/100)*v.ticket;return 'Success fee Cassper ('+ROI_CASSPER_FEE+'%): '+usd(rec*ROI_CASSPER_FEE/100)+'/mes';}},
+ ventaautonoma:{macro:'Ventas',name:'Venta autónoma del bot',tag:'Studio',note:'El bot cierra la venta completa. Ganancia = conversaciones de venta × % conversión × ticket medio.',
+   fields:[{id:'convs',label:'Conversaciones de venta / mes',value:2000},{id:'conv',label:'% de conversión (cierre autónomo)',value:15},{id:'ticket',label:'Ticket medio (USD)',value:60}],
+   gain:v=>v.convs*(v.conv/100)*v.ticket},
+ calificacion:{macro:'Ventas',name:'Calificación de leads',tag:'Engage / Studio',note:'El bot solo califica; el cierre lo hace un humano. Ganancia = leads × % calificados × % de cierre × ticket × % atribuible al bot.',
+   fields:[{id:'leads',label:'Leads / mes',value:2000},{id:'calif',label:'% calificados por el bot',value:40},{id:'cierre',label:'% de cierre (sobre calificados)',value:20},{id:'ticket',label:'Ticket medio (USD)',value:60},{id:'atribucion',label:'% atribuible al bot',value:30}],
+   gain:v=>v.leads*(v.calif/100)*(v.cierre/100)*v.ticket*(v.atribucion/100),
+   extra:v=>{const cal=v.leads*(v.calif/100),cer=cal*(v.cierre/100);return Math.round(cal).toLocaleString('es-CL')+' leads calificados · '+Math.round(cer).toLocaleString('es-CL')+' ventas cerradas/mes';}},
+ outbound:{macro:'Ventas',name:'Campañas outbound / re-engage',tag:'Engage',meta:true,outChannel:true,note:'Ganancia = mensajes enviados × % conversión × ticket medio.',
+   fields:[{id:'mensajes',label:'Mensajes outbound / mes',value:10000},{id:'conv',label:'% de conversión',value:2},{id:'ticket',label:'Ticket medio (USD)',value:40}],
+   gain:v=>v.mensajes*(v.conv/100)*v.ticket,
+   cost:v=>state.outWa?roiTplCost(v.mensajes):0,
+   extra:v=>state.outWa?roiTplTxt(v.mensajes,'envío'):'Enviado por Correo: sin costo de plantillas'},
+ atencion:{macro:'Postventa',name:'Automatización de consultas',tag:'Desk / Studio',note:'Horas ahorradas = consultas × % automatizado × (min ÷ 60). Ahorro = horas × costo hora del ejecutivo (costo empresa ÷ días hábiles × horas/día), topeado por la capacidad del equipo.',
+   fields:[{id:'consultas',label:'Consultas atendidas / mes',value:5000},{id:'auto',label:'% automatizado por IA',value:60},{id:'minutos',label:'Tiempo por consulta (min)',value:15},{id:'ejecutivos',label:'Cantidad de ejecutivos',value:5},{id:'costoEmpresa',label:'Costo empresa ejecutivo (USD/mes)',value:800}],
+   gain:v=>{const dh=ROI_DIAS*ROI_HORAS,ch=v.costoEmpresa/dh,h=v.consultas*(v.auto/100)*(v.minutos/60),cap=Math.max(v.ejecutivos,1)*dh;return Math.min(h,cap)*ch;},
+   extra:v=>{const dh=ROI_DIAS*ROI_HORAS,h=v.consultas*(v.auto/100)*(v.minutos/60),cap=Math.max(v.ejecutivos,1)*dh,he=Math.min(h,cap),fte=he/dh,tope=h>cap?' · topeado por capacidad':'';return Math.round(he).toLocaleString('es-CL')+' h ahorradas/mes · ~'+fte.toFixed(1)+' de '+v.ejecutivos+' FTE liberados'+tope;}},
+ sla:{macro:'Postventa',name:'Mejora de SLA / respuesta',tag:'Desk / Studio',note:'Fuga evitada por respuestas más rápidas = interacciones × % de fuga evitada × valor por interacción.',
+   fields:[{id:'interacciones',label:'Interacciones con SLA crítico / mes',value:3000},{id:'fuga',label:'% de fuga evitada (respuesta rápida)',value:5},{id:'valor',label:'Valor por interacción salvada (USD)',value:30}],
+   gain:v=>v.interacciones*(v.fuga/100)*v.valor},
+ retencion:{macro:'Postventa',name:'Retención / anti-churn',tag:'Desk / Engage',note:'Clientes salvados = clientes en riesgo × % retenidos por IA. Ganancia = clientes salvados × valor de vida (LTV).',
+   fields:[{id:'riesgo',label:'Clientes en riesgo de fuga / mes',value:200},{id:'retenidos',label:'% retenidos por atención IA',value:20},{id:'ltv',label:'Valor de vida del cliente / LTV (USD)',value:300}],
+   gain:v=>v.riesgo*(v.retenidos/100)*v.ltv,
+   extra:v=>Math.round(v.riesgo*(v.retenidos/100))+' cliente(s) salvado(s)/mes'},
+ escalamiento:{macro:'Postventa',name:'Ahorro de escalamiento (FTE)',tag:'Desk / Studio',note:'Al crecer el volumen sin sumar personas: ahorro = agentes que no se contratan × sueldo mensual del agente.',
+   fields:[{id:'agentes',label:'Agentes que NO se contratan',value:3},{id:'sueldo',label:'Sueldo mensual del agente (USD)',value:800}],
+   gain:v=>v.agentes*v.sueldo,
+   extra:v=>v.agentes+' contratación(es) evitada(s)'},
+ cobranza:{macro:'Postventa',name:'Recuperación de cobranza',tag:'Studio / Desk',note:'Ganancia = monto en mora gestionado × % recuperación.',
+   fields:[{id:'mora',label:'Monto en mora gestionado / mes (USD)',value:50000},{id:'recup',label:'% de recuperación',value:15}],
+   gain:v=>v.mora*(v.recup/100)}
+};
+const ROI_ORDER=['ventaautonoma','carrito','calificacion','cassper','outbound','atencion','sla','retencion','escalamiento','cobranza'];
+
+function roiVals(key){const cfg=ROI_CASES[key],st=state.roiVals[key]||{},v={};cfg.fields.forEach(f=>{v[f.id]=(st[f.id]!==undefined)?st[f.id]:f.value;});return v;}
+function roiParse(x){const n=parseFloat(String(x).replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n;}
+function roiCostValue(){return state.cost!=null?state.cost:0;}
+function anyMetaActive(){return ROI_ORDER.some(k=>state.roiActive[k]&&ROI_CASES[k].meta&&(k!=='outbound'||state.outWa));}
+
+/* Selector de país y billetera: solo en casos que envían plantillas por WhatsApp. */
+function metaFields(k){
+  if(k==='outbound'&&!state.outWa)return '';
+  return `<div class="roi-f"><label for="cty_${k}">País (tarifa Meta)</label><select id="cty_${k}" data-roi-cty>${WA_COUNTRIES.map(c=>`<option value="${c}" ${state.country===c?'selected':''}>${WA_PRICES[c].flag}  ${WA_PRICES[c].name}</option>`).join('')}</select></div>
+    <div class="roi-f"><label>Billetera Adereso–Meta</label><div class="roi-pills"><button class="roi-pill ${state.wallet!=='recurrente'?'on':''}" data-roi-wallet="no_recurrente">Spot +12%</button><button class="roi-pill ${state.wallet==='recurrente'?'on':''}" data-roi-wallet="recurrente">Recurrente +10%</button></div></div>`;
+}
+
+function renderRoi(){
+  const el=document.getElementById('roiArea');if(!el)return;
+  let html='';
+  ['Ventas','Postventa'].forEach(macro=>{
+    html+=`<div class="roi-macro">${macro}</div><div class="roi-grid">`;
+    ROI_ORDER.filter(k=>ROI_CASES[k].macro===macro).forEach(k=>{
+      const cfg=ROI_CASES[k],on=!!state.roiActive[k],v=roiVals(k);
+      html+=`<div class="roi-card ${on?'on':''}">
+        <button class="roi-head" data-roi-toggle="${k}" aria-pressed="${on}">
+          <span class="roi-check">${on?'✓':''}</span>
+          <span class="roi-hmeta"><span class="roi-name">${cfg.name}</span><span class="roi-tag">${cfg.tag}</span></span>
+          ${on?`<span class="roi-badge" id="roiBadge_${k}">${usd(cfg.gain(v))}/mes</span>`:''}
+        </button>`;
+      if(on){
+        html+=`<div class="roi-body"><div class="roi-fields">`+cfg.fields.map(f=>`<div class="roi-f"><label for="in_${k}_${f.id}">${f.label}</label><input type="number" min="0" step="any" id="in_${k}_${f.id}" data-roi-in="${k}:${f.id}" value="${v[f.id]}"></div>`).join('');
+        if(cfg.outChannel)html+=`<div class="roi-f full"><label>Canal de envío</label><div class="roi-pills"><button class="roi-pill ${state.outWa?'on':''}" data-roi-out="wa">WhatsApp</button><button class="roi-pill ${!state.outWa?'on':''}" data-roi-out="mail">Correo</button></div></div>`;
+        if(cfg.meta)html+=metaFields(k);
+        html+=`</div>`;
+        if(cfg.extra)html+=`<div class="roi-extra" id="roiExtra_${k}">${cfg.extra(v)}</div>`;
+        html+=`<div class="roi-cnote">${cfg.note}</div></div>`;
+      }
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`<div class="roi-panel">
+    <div class="roi-panel-head"><span data-i="coin" data-sz="16"></span> Caso de negocio</div>
+    <div class="roi-panel-sub">Lo que pagas cada mes frente a lo que te devuelve.</div>
+    <div class="roi-cols">
+      <div class="roi-col pay">
+        <div class="rc-h"><span class="rc-dot"></span>Pagas / mes</div>
+        <div class="rc-row"><span>Servicio Adereso <small>mensualidad</small></span><b id="roiSvc">$0</b></div>
+        <div class="rc-row" id="roiVarBox" style="display:none"><span>Consumo variable <small id="roiVarSub">aparte del servicio</small></span><b id="roiVar">$0</b></div>
+        <div class="rc-total"><span>Total</span><b id="roiPayTotal">$0</b></div>
+      </div>
+      <div class="roi-col get">
+        <div class="rc-h"><span class="rc-dot"></span>Recibes / mes</div>
+        <div class="rc-row"><span>Valor generado <small>suma de los casos activos</small></span><b id="roiGain">$0</b></div>
+        <div class="rc-row muted"><span>Menos lo que pagas</span><b id="roiLess">−$0</b></div>
+        <div class="rc-total"><span>Ganancia neta</span><b id="roiNet">$0</b></div>
+      </div>
+    </div>
+    <div class="roi-verdict">
+      <div class="rv-big" id="roiValue">—</div>
+      <div class="rv-txt"><b>Veces recuperada la inversión <em class="rv-pct" id="roiPct"></em></b><span id="roiTimes">Activa un caso de uso para ver el retorno.</span></div>
+    </div>
+    <div class="roi-empty" id="roiEmpty">Activa al menos un caso de uso para construir el caso de negocio.</div>
+    <div class="roi-cta"><button class="btn btn-primary" id="roiCopyBtn"><span data-i="copy"></span>Copiar caso de negocio</button><button class="btn btn-ghost" id="roiPrintBtn"><span data-i="print"></span>Imprimir / PDF</button></div>
+  </div>`;
+  el.innerHTML=html;paintIcons(el);applyReveal(el,'.roi-macro,.roi-card,.roi-panel');
+  calcRoiNumbers();
+}
+function calcRoiNumbers(){
+  let totalGain=0,extraCost=0,active=false,tplCost=0,feeCost=0;
+  ROI_ORDER.forEach(k=>{if(!state.roiActive[k])return;active=true;const cfg=ROI_CASES[k],v=roiVals(k),g=cfg.gain(v);totalGain+=g;if(cfg.cost){const c=cfg.cost(v);extraCost+=c;if(k==='cassper')feeCost+=c;else tplCost+=c;}
+    const b=document.getElementById('roiBadge_'+k);if(b)b.textContent=usd(g)+'/mes';
+    if(cfg.extra){const ex=document.getElementById('roiExtra_'+k);if(ex)ex.textContent=cfg.extra(v);}
+  });
+  const svc=roiCostValue(),cost=svc+extraCost,net=totalGain-cost,roi=cost>0?(net/cost)*100:0,veces=cost>0?totalGain/cost:0;
+  const set=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;return e;};
+  set('roiSvc',usd(svc));
+  set('roiGain',usd(totalGain));
+  const vb=document.getElementById('roiVarBox');if(vb){vb.style.display=extraCost>0?'':'none';set('roiVar',usd(extraCost));
+    const p=[];if(tplCost>0)p.push('plantillas Meta');if(feeCost>0)p.push('success fee Cassper');set('roiVarSub',p.join(' + ')+' · fuera de la mensualidad');}
+  set('roiPayTotal',usd(cost));
+  set('roiLess','−'+usd(cost));
+  const nEl=set('roiNet',usd(net));if(nEl)nEl.classList.toggle('neg',net<0);
+  const rEl=set('roiValue',(active&&cost>0)?veces.toLocaleString('es-CL',{maximumFractionDigits:1})+'×':'—');if(rEl)rEl.classList.toggle('neg',active&&cost>0&&veces<1);
+  set('roiPct',(active&&cost>0)?'(ROI mensual '+Math.round(roi).toLocaleString('es-CL')+'%)':'');
+  set('roiTimes',!active?'Activa un caso de uso para ver el retorno.':(svc>0?'Por cada $1 que pagas, recibes $'+veces.toLocaleString('es-CL',{maximumFractionDigits:1}):'Ingresa la inversión mensual arriba para calcular el retorno.'));
+  const emp=document.getElementById('roiEmpty');if(emp)emp.style.display=active?'none':'';
+}
+function roiCopy(){
+  const L=['CASO DE NEGOCIO · ROI Adereso',''];let totalGain=0,extraCost=0;
+  ROI_ORDER.forEach(k=>{if(!state.roiActive[k])return;const cfg=ROI_CASES[k],v=roiVals(k),g=cfg.gain(v);totalGain+=g;if(cfg.cost)extraCost+=cfg.cost(v);L.push('• '+cfg.name+' ('+cfg.tag+'): '+usd(g)+'/mes');});
+  const cost=roiCostValue()+extraCost,net=totalGain-cost,roi=cost>0?(net/cost)*100:0,veces=cost>0?totalGain/cost:0;
+  L.push('','Ganancia total: '+usd(totalGain)+'/mes','Inversión Adereso: '+usd(roiCostValue())+'/mes'+(extraCost>0?' (+ costos variables '+usd(extraCost)+')':''),'Veces recuperada la inversión: '+veces.toLocaleString('es-CL',{maximumFractionDigits:1})+'×','ROI mensual: '+Math.round(roi)+'%','Ganancia neta: '+usd(net)+'/mes');
+  navigator.clipboard.writeText(L.join('\n')).then(()=>{const b=document.getElementById('roiCopyBtn'),o=b.innerHTML;b.innerHTML='<span data-i="check"></span>Copiado';paintIcons(b);setTimeout(()=>{b.innerHTML=o;paintIcons(b);},1600);});
+}
+
+const roiArea=document.getElementById('roiArea');
+roiArea.addEventListener('click',e=>{
+  const t=e.target.closest('[data-roi-toggle]');
+  if(t){const k=t.dataset.roiToggle;state.roiActive[k]=!state.roiActive[k];renderRoi();return;}
+  const w=e.target.closest('[data-roi-wallet]');
+  if(w){state.wallet=w.dataset.roiWallet;renderRoi();return;}
+  const o=e.target.closest('[data-roi-out]');
+  if(o){state.outWa=o.dataset.roiOut==='wa';renderRoi();return;}
+  if(e.target.closest('#roiCopyBtn')){roiCopy();return;}
+  if(e.target.closest('#roiPrintBtn')){window.print();return;}
+});
+roiArea.addEventListener('input',e=>{
+  const inp=e.target.closest('[data-roi-in]');
+  if(inp){const parts=inp.dataset.roiIn.split(':'),k=parts[0],fid=parts[1];if(!state.roiVals[k])state.roiVals[k]={};state.roiVals[k][fid]=roiParse(inp.value);calcRoiNumbers();}
+});
+roiArea.addEventListener('change',e=>{
+  const c=e.target.closest('[data-roi-cty]');
+  if(c){state.country=c.value;renderRoi();}
+});
+const costIn=document.getElementById('roiCost');
+costIn.addEventListener('input',()=>{state.cost=costIn.value===''?null:roiParse(costIn.value);calcRoiNumbers();});
+document.getElementById('resetBtn').addEventListener('click',()=>{state=JSON.parse(JSON.stringify(INITIAL));costIn.value='';renderRoi();});
+
+paintIcons();
+observeReveals();
+renderRoi();
+</script>
+</body>
+</html>
